@@ -44,14 +44,12 @@ public class main {
                 .longOpt("smpthost")
                 .hasArg(true)
                 .desc("smtphost")
-                .required(true)
                 .build()
         );
         options.addOption(Option.builder("o")
                 .longOpt("smtpport")
                 .hasArg(true)
                 .desc("smtp port")
-                .required(true)
                 .build()
         );
         options.addOption(Option.builder("u")
