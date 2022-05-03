@@ -4,13 +4,13 @@ import org.apache.commons.cli.*;
 import org.apache.commons.cli.ParseException;
 
 import javax.mail.*;
-import javax.mail.internet.*;
 import java.util.Properties;
 
 public class main {
 
     public static void main(String[] args) {
         Options options = new Options();
+/*
         options.addOption(Option.builder("t")
             .longOpt("mailto")
             .hasArg(true)
@@ -25,6 +25,7 @@ public class main {
                 .required(true)
                 .build()
         );
+*/
         options.addOption(Option.builder("s")
                 .longOpt("smpthost")
                 .hasArg(true)
@@ -56,11 +57,10 @@ public class main {
                 .desc("starttls")
                 .build()
         );
-        String to;
-        String from;
+
         String host;
-        String username;
-        String password;
+        String username="";
+        String password="";
         String starttls;
         String port;
 
@@ -71,7 +71,7 @@ public class main {
 
         try {
             cmd = clp.parse(options, args);
-
+/*
             if (cmd.hasOption("t")) {
                 to = cmd.getOptionValue("t");
             }
@@ -80,64 +80,50 @@ public class main {
                 from = cmd.getOptionValue("f");
             }
 
+*/
+
             if (cmd.hasOption("h")) {
                 properties.setProperty("mail.smtp.host", cmd.getOptionValue("l"));
             }
             if (cmd.hasOption("o")) {
                 properties.put("mail.smtp.port", cmd.getOptionValue("o"));
             }
-            if (cmd.hasOption("u")) {
+            if (cmd.hasOption("u") && cmd.hasOption("p")) {
                 username = cmd.getOptionValue("u");
-            }
-
-            if (cmd.hasOption("p")) {
                 password = cmd.getOptionValue("p");
+                properties.put("mail.smtp.auth", "true");
             }
 
-            System.out.println("TLSEmail Start");
-            // enable authentication
-            properties.put("mail.smtp.auth", "true");
+            if(cmd.hasOption("l")){
+                properties.setProperty("mail.smtp.ssl.protocols", "TLSV1.2");
+                properties.setProperty("mail.smtp.starttls.required", "true");
+                properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                System.out.println("TLSEmail Start");
+            }
+            Authenticator auth = null;
 
-            // SSL Factory
-            properties.put("mail.smtp.socketFactory.class",
-                    "javax.net.ssl.SSLSocketFactory");
-
-            // creating Session instance referenced to
-            // Authenticator object to pass in
-            // Session.getInstance argument
-            Session session = Session.getDefaultInstance(properties,
-                    new javax.mail.Authenticator() {
-
-                        // override the getPasswordAuthentication
-                        // method
-                        protected PasswordAuthentication
-                        getPasswordAuthentication() {
-                            return new PasswordAuthentication("username",
-                                    "password");
-                        }
-                    });
-
-
-            //compose the message
+            if(username != ""){
+                String finalUsername = username;
+                String finalPassword = password;
+                auth = new Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(finalUsername,
+                                finalPassword);
+                    }
+                };
+            }
             try {
-                // javax.mail.internet.MimeMessage class is mostly
-                // used for abstraction.
-                MimeMessage message = new MimeMessage(session);
-
-                // header field of the header.
-                message.setFrom(new InternetAddress(from));
-
-                message.addRecipient(Message.RecipientType.TO,
-                        new InternetAddress(to));
-                message.setSubject("subject");
-                message.setText("Hello, aas is sending email ");
-
-                // Send message
-                Transport.send(message);
-                System.out.println("Yo it has been sent..");
-            } catch (
-                    MessagingException mex) {
+                Session session = Session.getDefaultInstance(properties, auth);
+                Transport transport = session.getTransport("smtp");
+                transport.connect();
+                transport.close();
+                System.out.println("Connection test completed");
+            } catch (NoSuchProviderException ex){
+                System.out.println(ex.getMessage());
+            } catch (MessagingException mex) {
                 mex.printStackTrace();
+            } catch (Exception ex){
+                ex.getMessage();
             }
         }
         catch (ParseException ex) {
