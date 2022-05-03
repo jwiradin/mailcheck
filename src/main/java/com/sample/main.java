@@ -18,6 +18,12 @@ public class main {
 
     public static void main(String[] args) {
         Options options = new Options();
+
+        options.addOption(Option.builder("h")
+            .longOpt("help")
+            .desc("print help")
+            .build()
+        );
 /*
         options.addOption(Option.builder("t")
             .longOpt("mailto")
@@ -95,13 +101,20 @@ public class main {
             cmd = clp.parse(options, args);
             p.setProperty("javax.net.debug", "all");
             p.setProperty("javax.mail.smtp.debug", "true");
+
+            if(cmd.hasOption("h")){
+                HelpFormatter help = new HelpFormatter();
+                help.printHelp("help", options);
+                return;
+            }
+
             if (cmd.hasOption("ts") && cmd.hasOption("tsp")) {
                 p.setProperty("javax.net.ssl.trustStore", cmd.getOptionValue("ts"));
                 p.setProperty("javax.net.ssl.trustStorePassword", cmd.getOptionValue("tsp"));
             }
 
-            if (cmd.hasOption("h")) {
-                properties.setProperty("mail.smtp.host", cmd.getOptionValue("l"));
+            if (cmd.hasOption("s")) {
+                properties.setProperty("mail.smtp.host", cmd.getOptionValue("s"));
             }
             if (cmd.hasOption("o")) {
                 properties.put("mail.smtp.port", cmd.getOptionValue("o"));
