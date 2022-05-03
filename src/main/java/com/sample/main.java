@@ -4,6 +4,14 @@ import org.apache.commons.cli.*;
 import org.apache.commons.cli.ParseException;
 
 import javax.mail.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Properties;
 
 public class main {
@@ -57,30 +65,40 @@ public class main {
                 .desc("starttls")
                 .build()
         );
-
-        String host;
+        options.addOption(Option.builder("i")
+                .longOpt("isssl")
+                .desc("is ssl")
+                .build()
+        );
+        options.addOption(Option.builder("ts")
+                .longOpt("truststore")
+                .hasArg(true)
+                .desc("trustsore")
+                .build()
+        );
+        options.addOption(Option.builder("tsp")
+                .longOpt("truststorepassword")
+                .hasArg(true)
+                .desc("truststorepassword")
+                .build()
+        );
         String username="";
         String password="";
-        String starttls;
-        String port;
 
         CommandLineParser clp = new DefaultParser();
         CommandLine cmd = null;
         // Get system properties
         Properties properties = System.getProperties();
+        Properties p = System.getProperties();
 
         try {
             cmd = clp.parse(options, args);
-/*
-            if (cmd.hasOption("t")) {
-                to = cmd.getOptionValue("t");
+            p.setProperty("javax.net.debug", "all");
+            p.setProperty("javax.mail.smtp.debug", "true");
+            if (cmd.hasOption("ts") && cmd.hasOption("tsp")) {
+                p.setProperty("javax.net.ssl.trustStore", cmd.getOptionValue("ts"));
+                p.setProperty("javax.net.ssl.trustStorePassword", cmd.getOptionValue("tsp"));
             }
-
-            if (cmd.hasOption("f")) {
-                from = cmd.getOptionValue("f");
-            }
-
-*/
 
             if (cmd.hasOption("h")) {
                 properties.setProperty("mail.smtp.host", cmd.getOptionValue("l"));
@@ -94,15 +112,18 @@ public class main {
                 properties.put("mail.smtp.auth", "true");
             }
 
-            if(cmd.hasOption("l")){
-                properties.setProperty("mail.smtp.ssl.protocols", "TLSV1.2");
+            if(cmd.hasOption("i")){
+                properties.setProperty("mail.smtp.ssl.enable", "true");
+            }
+            if (cmd.hasOption("l")) {
+                properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
                 properties.setProperty("mail.smtp.starttls.required", "true");
-                properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+               // properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
                 System.out.println("TLSEmail Start");
             }
             Authenticator auth = null;
 
-            if(username != ""){
+            if (username != "") {
                 String finalUsername = username;
                 String finalPassword = password;
                 auth = new Authenticator() {
@@ -114,21 +135,22 @@ public class main {
             }
             try {
                 Session session = Session.getDefaultInstance(properties, auth);
+                session.setDebug(true);
                 Transport transport = session.getTransport("smtp");
                 transport.connect();
                 transport.close();
                 System.out.println("Connection test completed");
-            } catch (NoSuchProviderException ex){
-                System.out.println(ex.getMessage());
+
+            } catch (NoSuchProviderException ex) {
+                ex.printStackTrace();
             } catch (MessagingException mex) {
                 mex.printStackTrace();
-            } catch (Exception ex){
-                ex.getMessage();
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
         catch (ParseException ex) {
-            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
-
     }
 }
