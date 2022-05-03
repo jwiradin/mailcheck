@@ -7,6 +7,7 @@
     <groupId>groupId</groupId>
     <artifactId>mailcheck</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -31,6 +32,7 @@
     </dependencies>
 
     <build>
+        <finalName>mailcheck</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
