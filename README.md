@@ -1,8 +1,8 @@
 # mailcheck
-Verify SMTP SSL connection.  By default enabled ssl debug.
+Verify SMTP SSL connection.  By default ssl debug is enabled.
 
-How to create jar<br/>
+<b>How to create jar</b><br/>
 mvn clean compile package
 
-Parameters<br/>
+<b>Parameters</b><br/>
 java -jar mailcheck.jar -h
